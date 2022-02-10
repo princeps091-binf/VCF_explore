@@ -40,8 +40,13 @@ breast_cancer_mutation_tbl<-breast_var_tbl %>%
 
 
 breast_cancer_mutation_tbl<-breast_var_tbl %>% 
-  filter(icgc_specimen_id %in% primary_tumor_id$icgc_specimen_id & chromosome == "X") 
+  filter(icgc_specimen_id %in% primary_tumor_id$icgc_specimen_id & chromosome == 22) 
 
+specimen_rank_tbl<-breast_cancer_mutation_tbl %>% group_by(icgc_specimen_id) %>% 
+  summarise(n=n()) %>% 
+  mutate(rank=min_rank(n)) %>% 
+  arrange(rank)
 breast_cancer_mutation_tbl %>% 
-  ggplot(.,aes(chromosome_start,y=icgc_specimen_id))+geom_point(alpha=0.01,size=0.5)#+facet_grid(icgc_specimen_id ~.,scales="free")
+  left_join(.,specimen_rank_tbl) %>% 
+  ggplot(.,aes(chromosome_start,y=rank))+geom_point(alpha=0.01,size=0.5)#+facet_grid(icgc_specimen_id ~.,scales="free")
 #---------------------------------------------
