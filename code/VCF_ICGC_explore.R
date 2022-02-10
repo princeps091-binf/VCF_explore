@@ -38,7 +38,10 @@ breast_cancer_mutation_tbl<-breast_var_tbl %>%
   filter(icgc_specimen_id %in% primary_tumor_id$icgc_specimen_id) %>% 
   distinct(icgc_mutation_id,chromosome,chromosome_start,chromosome_end,chromosome_strand)
 
+
+breast_cancer_mutation_tbl<-breast_var_tbl %>% 
+  filter(icgc_specimen_id %in% primary_tumor_id$icgc_specimen_id & chromosome == "X") 
+
 breast_cancer_mutation_tbl %>% 
-  mutate(chromosome=fct_relevel(chromosome,c(1:22,"X"))) %>% 
-  ggplot(.,aes(chromosome_start,y="chr"))+geom_point(alpha=0.01,size=0.1)+facet_grid(chromosome~.,scales="free")
+  ggplot(.,aes(chromosome_start,y=icgc_specimen_id))+geom_point(alpha=0.01,size=0.5)#+facet_grid(icgc_specimen_id ~.,scales="free")
 #---------------------------------------------
