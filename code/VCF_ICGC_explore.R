@@ -8,7 +8,8 @@ breast_var_tbl %>% distinct(icgc_mutation_id,icgc_donor_id) %>%
   summarise(n=n()) %>% 
   ggplot(.,aes(n))+
   scale_x_log10()+
-  geom_density()
+  geom_density()+xlab("number of mutations per specimen")
+ggsave("~/Documents/multires_bhicect/weeklies/Fran_Supek/img/breast_variant_burden_density.png")
 
 breast_var_tbl %>% distinct(icgc_mutation_id,icgc_donor_id) %>% 
   group_by(icgc_donor_id) %>% 
@@ -49,9 +50,12 @@ specimen_rank_tbl<-breast_cancer_mutation_tbl %>% group_by(icgc_specimen_id) %>%
 breast_cancer_mutation_tbl %>% 
   left_join(.,specimen_rank_tbl) %>% 
 #  mutate(categ=ifelse(n<500,"low burden (<500 mutations)","high burden (>500 mutations)")) %>% 
-  ggplot(.,aes(chromosome_start,y=rank))+geom_point(alpha=0.02,size=0.5)#+facet_grid(categ ~.,scales="free")
+  ggplot(.,aes(chromosome_start,y=rank))+geom_point(alpha=0.02,size=0.5)+
+  xlab("chromosome 1 position")+ylab("specimen")+theme_minimal()#+facet_grid(categ ~.,scales="free")
+ggsave("~/Documents/multires_bhicect/weeklies/Fran_Supek/img/chr1_breast_variant_waterfall.png")
+
 #---------------------------------------------
-# explanation of specimen metadata: https://docs.cancergenomicscloud.org/docs/icgc-metadata
+# explanation of ICGC specimen metadata: https://docs.cancergenomicscloud.org/docs/icgc-metadata
 
 library(GenomicRanges)
 library(ChIPseeker)
@@ -95,8 +99,8 @@ sample_var_fn_dist_tbl %>%
   mutate(categ=ifelse(n<500,"low burden (<500 mutations)","high burden (>500 mutations)")) %>% 
   ggplot(.,aes(pos,Frequency,fill=Feature))+scale_fill_brewer(palette="Paired")+
   geom_bar(stat="identity")+
-  facet_grid(specimen_donor_treatment_type ~categ,scales="free")
-
+  facet_grid(. ~categ,scales="free")+ xlab("specimen")
+ggsave("~/Documents/multires_bhicect/weeklies/Fran_Supek/img/chr1_breast_variant_fn_compo.png")
 
 
 fn_repo<-"~/Documents/multires_bhicect/data/epi_data/fn_BED/"
