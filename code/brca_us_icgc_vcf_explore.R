@@ -101,7 +101,6 @@ specimen_rank_tbl<-breast_var_tbl %>% group_by(X8) %>%
   summarise(n=n()) %>% 
   mutate(rank=min_rank(n)) %>% 
   arrange(rank)
-ggsave("~/Documents/multires_bhicect/weeklies/Fran_Supek/img/brca_us_mutation_bar_chr17_specimen.png",width = 30,height = 20,units = "cm")
 
 breast_var_tbl %>% 
   filter(!(grepl(",",X5))) %>% 
@@ -110,6 +109,7 @@ breast_var_tbl %>%
   summarise(n=n()) %>% 
   mutate(mut=fct_reorder(mut,n,.desc=T)) %>% 
   ggplot(.,aes(mut,n))+geom_bar(stat="identity")
+ggsave("~/Documents/multires_bhicect/weeklies/Fran_Supek/img/brca_us_mutation_kind_bar.png")
 
 breast_var_tbl %>% 
   filter(!(grepl(",",X5))) %>% 
@@ -123,6 +123,7 @@ breast_var_tbl %>%
   theme(axis.ticks.x=element_blank(),
         axis.text.x=element_blank())+
   xlab("specimen")
+ggsave("~/Documents/multires_bhicect/weeklies/Fran_Supek/img/brca_us_mutation_kind_bar_by_sample.png")
 
 
 breast_var_tbl %>% 
@@ -167,3 +168,4 @@ var_kind_fn_dist_tbl %>%
   geom_bar(stat = "identity")+scale_fill_brewer(palette="Paired")+
   theme(axis.ticks.x=element_blank())+
   xlab("mutation kind")
+ggsave("~/Documents/multires_bhicect/weeklies/Fran_Supek/img/brca_us_mutation_kind_bar_fn.png")
