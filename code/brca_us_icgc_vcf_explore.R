@@ -111,13 +111,21 @@ breast_var_tbl %>%
   ggplot(.,aes(mut,n))+geom_bar(stat="identity")
 ggsave("~/Documents/multires_bhicect/weeklies/Fran_Supek/img/brca_us_mutation_kind_bar.png")
 
-breast_var_tbl %>% 
+spec_mut_n_tbl<-breast_var_tbl %>% 
   filter(!(grepl(",",X5))) %>% 
   mutate(mut=paste(X4,X5,sep="->")) %>% 
   group_by(mut,X8) %>% 
   summarise(n=n()) %>% 
-  mutate(mut=fct_reorder(mut,n)) %>% 
-  ggplot(.,aes(X8,n,fill=mut))+
+  mutate(mut=fct_reorder(mut,n)) 
+spec_order<-spec_mut_n_tbl %>% ungroup %>% 
+  group_by(X8) %>% mutate(p=n/sum(n)) %>% 
+  filter(mut %in% c("C->T","G->A")) %>% 
+  summarise(m=sum(p)) %>% 
+  arrange(m) %>% 
+  mutate(rank=1:n())
+spec_mut_n_tbl %>% 
+  left_join(.,spec_order) %>% 
+  ggplot(.,aes(rank,n,fill=mut))+
   geom_bar(stat="identity",position="fill")+
   scale_fill_brewer(palette="Paired")+
   theme(axis.ticks.x=element_blank(),
