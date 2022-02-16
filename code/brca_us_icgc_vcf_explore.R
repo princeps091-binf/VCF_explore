@@ -101,13 +101,14 @@ specimen_rank_tbl<-breast_var_tbl %>% group_by(X8) %>%
   summarise(n=n()) %>% 
   mutate(rank=min_rank(n)) %>% 
   arrange(rank)
+ggsave("~/Documents/multires_bhicect/weeklies/Fran_Supek/img/brca_us_mutation_bar_chr17_specimen.png",width = 30,height = 20,units = "cm")
 
 breast_var_tbl %>% 
   filter(!(grepl(",",X5))) %>% 
   mutate(mut=paste(X4,X5,sep="->")) %>% 
   group_by(mut) %>% 
   summarise(n=n()) %>% 
-  mutate(mut=fct_reorder(mut,n)) %>% 
+  mutate(mut=fct_reorder(mut,n,.desc=T)) %>% 
   ggplot(.,aes(mut,n))+geom_bar(stat="identity")
 
 breast_var_tbl %>% 
@@ -116,7 +117,13 @@ breast_var_tbl %>%
   group_by(mut,X8) %>% 
   summarise(n=n()) %>% 
   mutate(mut=fct_reorder(mut,n)) %>% 
-  ggplot(.,aes(X8,n,fill=mut))+geom_bar(stat="identity",position="fill")+scale_fill_brewer(palette="Paired")
+  ggplot(.,aes(X8,n,fill=mut))+
+  geom_bar(stat="identity",position="fill")+
+  scale_fill_brewer(palette="Paired")+
+  theme(axis.ticks.x=element_blank(),
+        axis.text.x=element_blank())+
+  xlab("specimen")
+
 
 breast_var_tbl %>% 
   filter(!(grepl(",",X5))) %>% 
@@ -130,7 +137,33 @@ breast_var_tbl %>%
   filter(!(grepl(",",X5))) %>% 
   mutate(mut=paste(X4,X5,sep="->")) %>% 
   left_join(.,specimen_rank_tbl) %>% 
-  filter(X1=="chr1") %>% 
+  filter(X1=="chr19") %>% 
   ggplot(.,aes(X2,y=rank))+geom_point(alpha=0.4,size=0.5)+
   xlab("chromosome position")+ylab("specimen")+
   theme_minimal()+facet_wrap(mut~.)
+
+breast_var_kind_tbl<-breast_var_tbl %>% 
+  filter(!(grepl(",",X5))) %>% 
+  mutate(mut=paste(X4,X5,sep="->"))
+  
+var_kind_fn_dist_tbl<-do.call(bind_rows,lapply(unique(breast_var_kind_tbl$mut),function(specimen){
+  message(specimen)
+  sample_chr_var<-breast_var_kind_tbl %>% 
+    filter(mut == specimen) %>% distinct(X1,X2)
+  
+  sample_var_Grange<-GRanges(seqnames=sample_chr_var$X1,
+                             ranges = IRanges(start=sample_chr_var$X2,
+                                              end=sample_chr_var$X2)
+  )
+  
+  
+  peakAnno <- annotatePeak(sample_var_Grange, tssRegion=c(-3000, 3000),TxDb=txdb, annoDb="org.Hs.eg.db",verbose = F)
+  
+  return(peakAnno@annoStat %>% mutate(ID=specimen))
+}))
+
+var_kind_fn_dist_tbl %>% 
+  ggplot(.,aes(ID,Frequency,fill=Feature))+
+  geom_bar(stat = "identity")+scale_fill_brewer(palette="Paired")+
+  theme(axis.ticks.x=element_blank())+
+  xlab("mutation kind")
