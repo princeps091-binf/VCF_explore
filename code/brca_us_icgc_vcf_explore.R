@@ -15,14 +15,14 @@ specimen_rank_tbl<-breast_var_tbl %>% group_by(X8) %>%
 
 gg_rain<-breast_var_tbl %>% 
   left_join(.,specimen_rank_tbl) %>% 
-  filter(X1=="chr4") %>% 
+  filter(X1=="chr17") %>% 
   mutate(X1=fct_relevel(X1,c(paste0("chr",1:22),"chrX","chrY"))) %>%   
-  ggplot(.,aes(X2,y=rank))+geom_point(alpha=0.04,size=0.5)+
+  ggplot(.,aes(X2,y=rank))+geom_point(alpha=0.1,size=0.5)+
   xlab("chromosome position")+ylab("specimen")+
   theme_minimal()#+
 #  facet_wrap(X1 ~.,scales="free")
 gg_rain
-ggsave("~/Documents/multires_bhicect/weeklies/Fran_Supek/img/chr4_brca_us_mutation_rain.png",width = 60,height = 40,units = "cm")
+ggsave("~/Documents/multires_bhicect/weeklies/Fran_Supek/img/chr17_brca_us_mutation_rain.png",width = 60,height = 40,units = "cm")
 
 
 library(GenomicRanges)
@@ -95,3 +95,42 @@ chr17_var_fn_dist_tbl %>%
         axis.ticks.x=element_blank())+
   xlab("specimen")
 ggsave("~/Documents/multires_bhicect/weeklies/Fran_Supek/img/brca_us_mutation_bar_chr17_specimen.png",width = 30,height = 20,units = "cm")
+#------------------------------
+#Mutation kinds
+specimen_rank_tbl<-breast_var_tbl %>% group_by(X8) %>% 
+  summarise(n=n()) %>% 
+  mutate(rank=min_rank(n)) %>% 
+  arrange(rank)
+
+breast_var_tbl %>% 
+  filter(!(grepl(",",X5))) %>% 
+  mutate(mut=paste(X4,X5,sep="->")) %>% 
+  group_by(mut) %>% 
+  summarise(n=n()) %>% 
+  mutate(mut=fct_reorder(mut,n)) %>% 
+  ggplot(.,aes(mut,n))+geom_bar(stat="identity")
+
+breast_var_tbl %>% 
+  filter(!(grepl(",",X5))) %>% 
+  mutate(mut=paste(X4,X5,sep="->")) %>% 
+  group_by(mut,X8) %>% 
+  summarise(n=n()) %>% 
+  mutate(mut=fct_reorder(mut,n)) %>% 
+  ggplot(.,aes(X8,n,fill=mut))+geom_bar(stat="identity",position="fill")+scale_fill_brewer(palette="Paired")
+
+breast_var_tbl %>% 
+  filter(!(grepl(",",X5))) %>% 
+  mutate(mut=paste(X4,X5,sep="->")) %>% 
+  group_by(mut,X1) %>% 
+  summarise(n=n()) %>% 
+  mutate(mut=fct_reorder(mut,n)) %>% 
+  ggplot(.,aes(X1,n,fill=mut))+geom_bar(stat="identity",position="fill")+scale_fill_brewer(palette="Paired")
+
+breast_var_tbl %>% 
+  filter(!(grepl(",",X5))) %>% 
+  mutate(mut=paste(X4,X5,sep="->")) %>% 
+  left_join(.,specimen_rank_tbl) %>% 
+  filter(X1=="chr1") %>% 
+  ggplot(.,aes(X2,y=rank))+geom_point(alpha=0.4,size=0.5)+
+  xlab("chromosome position")+ylab("specimen")+
+  theme_minimal()+facet_wrap(mut~.)
