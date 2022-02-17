@@ -38,8 +38,8 @@ var_Grange_hg19<-unlist(liftOver(var_Grange, ch))
 unique_var_Grange_hg19<-unlist(liftOver(unique_var_Grange, ch))
 #--------------------------------
 dat_file<-"~/Documents/multires_bhicect/data/HMEC/"
-chromo<-"chr4"
-tmp_res<-"10kb"
+chromo<-"chr1"
+tmp_res<-"5kb"
 
 chr_bins<-hic_dat_in(dat_file,tmp_res,chromo)%>% 
   summarise(bins=list(unique(c(X1,X2)))) %>% 
@@ -56,6 +56,12 @@ spec_bin_count<-do.call(bind_rows,lapply(unique(mcols(var_Grange_hg19)$X8),funct
   
 }))
 
+spec_bin_count %>% 
+  group_by(bin) %>% 
+  summarise(med=sum(count>0)/n(),mean=mean(count),var=var(count)) %>% 
+  #  filter(med>0.3)
+  ggplot(.,aes(x=mean,y=med))+geom_density_2d()+geom_point(alpha=0.1)+scale_x_sqrt()+scale_y_sqrt()
+
 
 spec_bin_count %>% 
   group_by(bin) %>% 
@@ -69,7 +75,3 @@ spec_bin_count %>%
   summarise(med=sum(count>0)/n(),mean=mean(count),var=var(count)) %>% 
   ggplot(.,aes(x=var/mean))+geom_histogram()+geom_vline(xintercept = 1)+scale_x_log10()
 
-spec_bin_count %>% 
-  group_by(bin) %>% 
-  summarise(med=sum(count>0)/n(),mean=mean(count),var=var(count)) %>% 
-  ggplot(.,aes(x=var/mean,y=med))+geom_density_2d()+geom_point(alpha=0.1)+scale_x_log10()+scale_y_log10()
