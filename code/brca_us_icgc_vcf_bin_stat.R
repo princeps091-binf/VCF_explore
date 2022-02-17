@@ -31,8 +31,6 @@ unique_var_Grange<-GRanges(seqnames=chr_var$X1,
 
 #Convert hg38 to hg19
 ch = import.chain("~/Documents/multires_bhicect/data/epi_data/hg38ToHg19.over.chain")
-screen_Grange<-unlist(liftOver(screen_Grange38, ch))
-names(screen_Grange)<-paste("screen",1:length(screen_Grange))
 
 var_Grange_hg19<-unlist(liftOver(var_Grange, ch))
 unique_var_Grange_hg19<-unlist(liftOver(unique_var_Grange, ch))
@@ -40,12 +38,17 @@ unique_var_Grange_hg19<-unlist(liftOver(unique_var_Grange, ch))
 dat_file<-"~/Documents/multires_bhicect/data/HMEC/"
 chromo<-"chr1"
 tmp_res<-"5kb"
+chr_set<-unlist(lapply(strsplit(list.files(paste(dat_file,tmp_res,sep='/')),split='\\.'),'[',1))
+chr_bins<-do.call(bind_rows,lapply(chr_set,function(chromo){
+  message(chromo)
+  return(hic_dat_in(dat_file,tmp_res,chromo)%>% 
+    summarise(bins=list(unique(c(X1,X2)))) %>% 
+    unnest(cols=c(bins)) %>% arrange(bins) %>% 
+    mutate(end=bins+res_num[tmp_res]-1,chrom=chromo)
+  )
+}))
 
-chr_bins<-hic_dat_in(dat_file,tmp_res,chromo)%>% 
-  summarise(bins=list(unique(c(X1,X2)))) %>% 
-  unnest(cols=c(bins)) %>% arrange(bins) %>% 
-  mutate(end=bins+res_num[tmp_res]-1)
-chr_GRange<-GRanges(seqnames=chromo,
+chr_GRange<-GRanges(seqnames=chr_bins$chrom,
                     ranges = IRanges(start=chr_bins$bins,
                                      end=chr_bins$end)
 )
@@ -55,23 +58,30 @@ spec_bin_count<-do.call(bind_rows,lapply(unique(mcols(var_Grange_hg19)$X8),funct
   tibble(bin=1:length(chr_GRange),count=countOverlaps(chr_GRange,var_Grange_hg19[mcols(var_Grange_hg19)$X8==ID]),specimen=ID)
   
 }))
-
-spec_bin_count %>% 
+bin_stat_tbl<-spec_bin_count %>% 
   group_by(bin) %>% 
-  summarise(med=sum(count>0)/n(),mean=mean(count),var=var(count)) %>% 
+  summarise(med=sum(count>0)/n(),mean=mean(count),var=var(count))
+
+bin_stat_tbl %>% 
   #  filter(med>0.3)
-  ggplot(.,aes(x=mean,y=med))+geom_density_2d()+geom_point(alpha=0.1)+scale_x_sqrt()+scale_y_sqrt()
+  ggplot(.,aes(med))+geom_density()
 
+bin_stat_tbl %>% 
+  #  filter(med>0.3)
+  ggplot(.,aes(mean))+geom_density()
 
-spec_bin_count %>% 
-  group_by(bin) %>% 
-  summarise(med=sum(count>0)/n(),mad=diff(range(count)),mean=mean(count),var=var(count)) %>% 
-  arrange(med) %>% 
-  mutate(rank=1:n()) %>%
-  ggplot(.,aes(x=med,y=var/men))+geom_point(alpha=0.1)+geom_hline(yintercept = 1)
+bin_stat_tbl %>%
+  ggplot(.,aes(x=med,y=var/mean))+geom_point(alpha=0.1)
 
-spec_bin_count %>% 
-  group_by(bin) %>% 
-  summarise(med=sum(count>0)/n(),mean=mean(count),var=var(count)) %>% 
+bin_stat_tbl %>% 
   ggplot(.,aes(x=var/mean))+geom_histogram()+geom_vline(xintercept = 1)+scale_x_log10()
+#-------------------------------------------------
+bin_stat_tbl %>% 
+  mutate(union.count=countOverlaps(chr_GRange,unique_var_Grange_hg19)) %>% 
+  ggplot(.,aes(union.count,med))+geom_point(alpha=0.1)
+
+bin_stat_tbl %>% 
+  mutate(union.count=countOverlaps(chr_GRange,unique_var_Grange_hg19)) %>% 
+  ggplot(.,aes(union.count,mean))+geom_point(alpha=0.1)
+
 
