@@ -78,10 +78,14 @@ bin_stat_tbl %>%
 #-------------------------------------------------
 bin_stat_tbl %>% 
   mutate(union.count=countOverlaps(chr_GRange,unique_var_Grange_hg19)) %>% 
-  ggplot(.,aes(union.count,med))+geom_point(alpha=0.1)
+#  filter(med>0) %>% 
+  ggplot(.,aes(union.count,med))+
+  geom_point(alpha=0.1)
 
 bin_stat_tbl %>% 
   mutate(union.count=countOverlaps(chr_GRange,unique_var_Grange_hg19)) %>% 
-  ggplot(.,aes(union.count,mean))+geom_point(alpha=0.1)
+#  filter(med>0) %>% 
+  ggplot(.,aes(union.count,mean))+
+  geom_point(alpha=0.1)
 
 
