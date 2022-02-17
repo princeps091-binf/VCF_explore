@@ -15,14 +15,14 @@ specimen_rank_tbl<-breast_var_tbl %>% group_by(X8) %>%
 
 gg_rain<-breast_var_tbl %>% 
   left_join(.,specimen_rank_tbl) %>% 
-  filter(X1=="chr17") %>% 
+#  filter(X1=="chr17") %>% 
   mutate(X1=fct_relevel(X1,c(paste0("chr",1:22),"chrX","chrY"))) %>%   
-  ggplot(.,aes(X2,y=rank))+geom_point(alpha=0.1,size=0.5)+
+  ggplot(.,aes(X2,y=rank))+geom_point(alpha=0.05,size=0.2)+
   xlab("chromosome position")+ylab("specimen")+
-  theme_minimal()#+
-#  facet_wrap(X1 ~.,scales="free")
+  theme_classic()+
+  facet_wrap(X1 ~.,scales="free")
 gg_rain
-ggsave("~/Documents/multires_bhicect/weeklies/Fran_Supek/img/chr17_brca_us_mutation_rain.png",width = 60,height = 40,units = "cm")
+ggsave("~/Documents/multires_bhicect/weeklies/Fran_Supek/img/brca_us_mutation_rain_2.png",width = 60,height = 40,units = "cm",dpi = 700)
 
 
 library(GenomicRanges)
